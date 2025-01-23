@@ -28,6 +28,18 @@ const StudentForm = () => {
   const [profileImage, setProfileImage] = useState(DEFAULT_PROFILE_IMAGE);
   const [calculatedAge, setCalculatedAge] = useState("");
 
+  // State to store the form data
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    course: "",
+    address: "",
+    college: "",
+    birthdate: "",
+    profilePhoto: "",
+    age: "",
+  });
+
   const {
     register,
     handleSubmit,
@@ -60,7 +72,17 @@ const StudentForm = () => {
     }
   }, [birthdate]);
 
+  // Handle form data changes
+  const handleFormDataChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   const onSubmit = (data) => {
+    // Handle profile photo update
     if (!data.profilePhoto || data.profilePhoto.length === 0) {
       data.profilePhoto = DEFAULT_PROFILE_IMAGE;
     } else {
@@ -72,6 +94,7 @@ const StudentForm = () => {
     data.age = calculatedAge;
 
     console.log("Form Submitted:", data);
+    setFormData(data); // Update the formData state with the submitted data
   };
 
   // Handle profile photo preview
@@ -100,6 +123,7 @@ const StudentForm = () => {
                 accept="image/*"
                 {...register("profilePhoto")}
                 className={styles.input}
+                onChange={handleFormDataChange}
               />
               {errors.profilePhoto && (
                 <p className={styles.error}>{errors.profilePhoto.message}</p>
@@ -123,6 +147,8 @@ const StudentForm = () => {
                 id="name"
                 {...register("name")}
                 className={styles.input}
+                value={formData.name}
+                onChange={handleFormDataChange}
               />
               {errors.name && (
                 <p className={styles.error}>{errors.name.message}</p>
@@ -137,6 +163,8 @@ const StudentForm = () => {
                 id="birthdate"
                 {...register("birthdate")}
                 className={styles.input}
+                value={formData.birthdate}
+                onChange={handleFormDataChange}
               />
               {errors.birthdate && (
                 <p className={styles.error}>{errors.birthdate.message}</p>
@@ -163,6 +191,8 @@ const StudentForm = () => {
                 id="email"
                 {...register("email")}
                 className={styles.input}
+                value={formData.email}
+                onChange={handleFormDataChange}
               />
               {errors.email && (
                 <p className={styles.error}>{errors.email.message}</p>
@@ -176,6 +206,8 @@ const StudentForm = () => {
                 id="course"
                 {...register("course")}
                 className={styles.select}
+                value={formData.course}
+                onChange={handleFormDataChange}
               >
                 <option value="">Select Course</option>
                 <option value="React JS">React JS</option>
@@ -196,6 +228,8 @@ const StudentForm = () => {
                 id="college"
                 {...register("college")}
                 className={styles.input}
+                value={formData.college}
+                onChange={handleFormDataChange}
               />
               {errors.college && (
                 <p className={styles.error}>{errors.college.message}</p>
@@ -209,6 +243,8 @@ const StudentForm = () => {
                 id="address"
                 {...register("address")}
                 className={styles.textarea}
+                value={formData.address}
+                onChange={handleFormDataChange}
               />
               {errors.address && (
                 <p className={styles.error}>{errors.address.message}</p>
