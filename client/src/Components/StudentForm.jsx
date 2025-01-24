@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "./StudentForm.module.css";
 import { FaCamera } from "react-icons/fa";
 
-// Zod schema for validation
 const studentSchema = z.object({
   name: z
     .string()
@@ -38,10 +37,7 @@ const studentSchema = z.object({
   gender: z.enum(["Male", "Female"], {
     errorMap: () => ({ message: "Please select a valid gender" }),
   }),
-  birthday: z
-    .string()
-    .nonempty("Please select your birthday")
-    .refine((date) => !isNaN(new Date(date).getTime()), "Invalid date format"),
+  birthday: z.string().nonempty("Please select your birthday"),
   hobbies: z.array(z.string()).min(1, "Please select at least one hobby"),
   contact: z
     .string()
@@ -53,7 +49,7 @@ const studentSchema = z.object({
     .trim()
     .min(10, "Address must be at least 10 characters long")
     .max(200, "Address must not exceed 200 characters"),
-  profilePhoto: z.any().optional(), 
+  profilePhoto: z.any().optional(),
 });
 
 export default function StudentFormInfo() {
@@ -86,7 +82,7 @@ export default function StudentFormInfo() {
 
   // Watch all fields to calculate progress
   const formValues = watch();
-  const totalFields = 9; // Update if the number of fields changes
+  const totalFields = 9;
   const filledFields = Object.keys(formValues).filter(
     (key) => formValues[key] && formValues[key].length > 0
   ).length;
@@ -100,7 +96,7 @@ export default function StudentFormInfo() {
           <div className={styles.profileImageContainer}>
             {/* Profile Image */}
             <img
-              src={profilePhoto || "/images/default-profile-pic.jpg"} // If no photo selected, show default image
+              src={profilePhoto || "/images/default-profile-pic.jpg"} // If no photo selected then show default image
               alt="Profile"
               className={styles.profileImage}
             />
