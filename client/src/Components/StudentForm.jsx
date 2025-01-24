@@ -53,7 +53,7 @@ const studentSchema = z.object({
     .trim()
     .min(10, "Address must be at least 10 characters long")
     .max(200, "Address must not exceed 200 characters"),
-  
+  profilePhoto: z.any().optional(), 
 });
 
 export default function StudentFormInfo() {
@@ -112,15 +112,16 @@ export default function StudentFormInfo() {
               <FaCamera className={styles.cameraIcon} />
             </label>
           </div>
+
           <input
             type="file"
             id="profilePhotoInput"
             {...register("profilePhoto")}
             className={styles.input}
-            accept="image/*"
             onChange={handleProfilePhotoChange}
-            style={{ display: "none" }} // Hide the file input
+            accept="image/jpeg,image/png,image/jpg"
           />
+
           {errors.profilePhoto && (
             <p className={styles.errorMessage}>{errors.profilePhoto.message}</p>
           )}
