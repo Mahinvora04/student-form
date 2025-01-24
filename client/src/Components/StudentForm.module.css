@@ -1,123 +1,243 @@
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.outerDiv {
-  display: flex;
-  justify-content: space-evenly;
-}
-
-.innerContainer {
+.layoutContainer {
   display: flex;
   justify-content: space-between;
+  margin: 20px;
 }
 
 .sidebar {
-  width: 30%;
+  width: 250px;
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 250px;
+  height: 100vh;
 }
 
-.infoContainer {
-  width: 60%;
-}
-
-.profilePreview {
-  width: 200px;
-  height: 200px;
-}
-
-.profilePreview img {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  box-shadow: 0 0 10px 2px rgba(61, 2, 67, 0.3);
-}
-
-.title {
+.profileImageContainer {
   text-align: center;
-  font-size: 24px;
-  font-weight: bold;
   margin-bottom: 20px;
-  color: #333;
+}
+
+.profileImage {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+.fileInput {
+  margin-top: 10px;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  max-width: 70%;
+}
+
+.heading {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  text-decoration: underline;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #000000; /* Silver color */
+  position: relative;
+  overflow: hidden;
+}
+
+.heading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%; /* Start off-screen */
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+  animation: shiningEffect 6s infinite;
+}
+
+@keyframes shiningEffect {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .formGroup {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .label {
-  display: block;
-  margin-bottom: 5px;
   font-weight: bold;
-  color: #555;
-  margin-top: 10px;
-
 }
 
 .input,
 .select,
 .textarea {
   width: 100%;
-  box-sizing: border-box;
   padding: 8px;
-  font-size: 16px;
-  border: 1px solid #ccc;
+  margin-top: 5px;
   border-radius: 4px;
-  outline: none;
+  border: 1px solid #ccc;
 }
 
 .input {
   border: none;
-  border-bottom: 1px solid #2f0038;
+  background-color: #cccccc38;
+  border-bottom: 1px solid purple;
 }
 
-.textarea {
-  resize: none;
-  height: 100px;
+.checkboxGroup {
+  display: flex;
+  gap: 10px;
 }
 
-.input:focus,
-.select:focus {
-  border-color: #007bff;
+.checkboxInput {
+  margin-right: 5px;
 }
 
-.button {
-  width: 100%;
-  margin-top: 20px;
-  padding: 12px 20px;
-  background: linear-gradient(45deg, #3e1b47, #000000);
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
-  border: none;
-  border-radius: 50px;
+.radioGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.radioInput {
+  margin-right: 5px;
+}
+
+.errorMessage {
+  color: red;
+  font-size: 12px;
+}
+
+.submitButton {
+  width: 300px;
+  background: rgba(149, 4, 163, 0.2);
+  color: #000000;
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
-  transition: all 0.4s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+  transition: all ease 0.5s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  margin-left: 65%;
 }
 
-.button:hover {
-  background: linear-gradient(45deg, #000000, #3e1b47);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  transform: translateY(-4px);
-  transition: all 0.3s ease-in-out;
+.submitButton::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+  transform: scale(0);
+  transition: transform 0.5s ease;
+  border-radius: 50%;
+  z-index: 0;
 }
 
-.button:active {
-  transform: translateY(2px);
+.submitButton:hover::before {
+  transform: scale(1);
 }
 
-.button:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(63, 0, 88, 0.5);
+.submitButton:hover {
+  color: #000000;
+  background: rgba(142, 8, 169, 0.438);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
-.addressArea {
-  width: 100%;
+.submitButton:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.profileImageContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.profileImage {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cameraIconLabel {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.cameraIcon {
+  color: white;
+  font-size: 24px;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkboxLabel {
+  font-size: 0.9rem;
+}
+
+.checkbox {
+  margin-right: 10px;
+}
+
+.errorMessage {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+
+.progressMessage {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
 }

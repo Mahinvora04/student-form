@@ -1,264 +1,354 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "./StudentForm.module.css";
+import { FaCamera } from "react-icons/fa";
 
-// Default profile image
-const DEFAULT_PROFILE_IMAGE = "images/𝘈 𝘷 𝘢 𝘵 𝘢 𝘳 ᥫ᭡ -.jpg";
-
-// Zod schema definition
-const studentValidationSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  age: z
-    .number({ invalid_type_error: "Age must be a number" })
-    .min(18, "You must be at least 18 years old")
-    .max(100, "Age must be less than 100"),
+// Zod schema for validation
+const studentSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(3, "Name must be at least 3 characters long")
+    .max(50, "Name must not exceed 50 characters")
+    .regex(/^[A-Za-z\s]+$/, "Name must only contain letters and spaces"),
   email: z
     .string()
     .email("Invalid email address")
-    .nonempty("Email is required"),
-  course: z.string().min(1, "Course is required"),
-  address: z.string().min(1, "Address is required"),
-  college: z.string().min(1, "College is required"),
-  birthdate: z.string().min(1, "Birthdate is required"),
+    .regex(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Invalid email format"
+    ),
+  age: z
+    .number({
+      invalid_type_error: "Age must be a number",
+    })
+    .int("Age must be an integer")
+    .min(18, "Age must be at least 18")
+    .max(60, "Age must not exceed 60"),
+  course: z
+    .string()
+    .trim()
+    .nonempty("Please select a course")
+    .regex(
+      /^[A-Za-z0-9\s-]+$/,
+      "Course name must only contain letters, numbers, spaces, or dashes"
+    ),
+  gender: z.enum(["Male", "Female"], {
+    errorMap: () => ({ message: "Please select a valid gender" }),
+  }),
+  birthday: z
+    .string()
+    .nonempty("Please select your birthday")
+    .refine((date) => !isNaN(new Date(date).getTime()), "Invalid date format"),
+  hobbies: z.array(z.string()).min(1, "Please select at least one hobby"),
+  contact: z
+    .string()
+    .trim()
+    .nonempty("Contact number is required")
+    .regex(/^\d{10}$/, "Contact number must be exactly 10 digits"),
+  address: z
+    .string()
+    .trim()
+    .min(10, "Address must be at least 10 characters long")
+    .max(200, "Address must not exceed 200 characters"),
+  
 });
 
-const StudentForm = () => {
-  const [profileImage, setProfileImage] = useState(DEFAULT_PROFILE_IMAGE);
-  const [calculatedAge, setCalculatedAge] = useState("");
+export default function StudentFormInfo() {
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
-  // State to store the form data
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    course: "",
-    address: "",
-    college: "",
-    birthdate: "",
-    profilePhoto: "",
-    age: "",
-  });
+  const handleProfilePhotoChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setProfilePhoto(URL.createObjectURL(file));
+    } else {
+      setProfilePhoto(null);
+    }
+  };
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
+    reset,
   } = useForm({
-    resolver: zodResolver(studentValidationSchema),
+    resolver: zodResolver(studentSchema),
   });
 
-  // Watch the profile photo and birthdate fields
-  const profilePhotoFile = watch("profilePhoto");
-  const birthdate = watch("birthdate");
-
-  // Calculate age whenever birthdate changes
-  useEffect(() => {
-    if (birthdate) {
-      const birthDate = new Date(birthdate);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
-      ) {
-        age--;
-      }
-      setCalculatedAge(age);
-    } else {
-      setCalculatedAge("");
-    }
-  }, [birthdate]);
-
-  // Handle form data changes
-  const handleFormDataChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
   const onSubmit = (data) => {
-    // Handle profile photo update
-    if (!data.profilePhoto || data.profilePhoto.length === 0) {
-      data.profilePhoto = DEFAULT_PROFILE_IMAGE;
-    } else {
-      const photoFile = data.profilePhoto[0];
-      data.profilePhoto = URL.createObjectURL(photoFile);
-    }
-
-    // Include the calculated age in the form data
-    data.age = calculatedAge;
-
-    console.log("Form Submitted:", data);
-    setFormData(data); // Update the formData state with the submitted data
+    console.log("Student Information:", data);
+    alert("Form submitted successfully!");
+    reset();
   };
 
-  // Handle profile photo preview
-  useEffect(() => {
-    if (profilePhotoFile && profilePhotoFile.length > 0) {
-      const file = profilePhotoFile[0];
-      setProfileImage(URL.createObjectURL(file));
-    } else {
-      setProfileImage(DEFAULT_PROFILE_IMAGE);
-    }
-  }, [profilePhotoFile]);
+  // Watch all fields to calculate progress
+  const formValues = watch();
+  const totalFields = 9; // Update if the number of fields changes
+  const filledFields = Object.keys(formValues).filter(
+    (key) => formValues[key] && formValues[key].length > 0
+  ).length;
+  const progress = Math.round((filledFields / totalFields) * 100);
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>Student Form</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className={styles.outerDiv}>
-          <div className={styles.sidebar}>
-            <div className={styles.formGroup}>
-              <label htmlFor="profilePhoto" className={styles.label}>
-                Profile Photo:
-              </label>
-              <input
-                type="file"
-                id="profilePhoto"
-                accept="image/*"
-                {...register("profilePhoto")}
-                className={styles.input}
-                onChange={handleFormDataChange}
-              />
-              {errors.profilePhoto && (
-                <p className={styles.error}>{errors.profilePhoto.message}</p>
-              )}
-            </div>
-            <div className={styles.profilePreview}>
-              <img
-                src={profileImage}
-                alt="Profile Preview"
-                className={styles.previewImage}
-              />
-            </div>
+    <div className={styles.layoutContainer}>
+      <div className={styles.sidebar}>
+        {/* Profile Photo Section */}
+        <div className={styles.formGroup}>
+          <div className={styles.profileImageContainer}>
+            {/* Profile Image */}
+            <img
+              src={profilePhoto || "/images/default-profile-pic.jpg"} // If no photo selected, show default image
+              alt="Profile"
+              className={styles.profileImage}
+            />
+            {/* Camera Icon */}
+            <label
+              htmlFor="profilePhotoInput"
+              className={styles.cameraIconLabel}
+            >
+              <FaCamera className={styles.cameraIcon} />
+            </label>
           </div>
-          <div className={styles.infoContainer}>
-            <div className={styles.formGroup}>
-              <label htmlFor="name" className={styles.label}>
-                <i className="fas fa-user"></i> Name:
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register("name")}
-                className={styles.input}
-                value={formData.name}
-                onChange={handleFormDataChange}
-              />
-              {errors.name && (
-                <p className={styles.error}>{errors.name.message}</p>
-              )}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="birthdate" className={styles.label}>
-                <i className="fas fa-calendar-alt"></i> Birthdate:
-              </label>
-              <input
-                type="date"
-                id="birthdate"
-                {...register("birthdate")}
-                className={styles.input}
-                value={formData.birthdate}
-                onChange={handleFormDataChange}
-              />
-              {errors.birthdate && (
-                <p className={styles.error}>{errors.birthdate.message}</p>
-              )}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="age" className={styles.label}>
-                <i className="fas fa-birthday-cake"></i> Age:
-              </label>
-              <input
-                type="number"
-                id="age"
-                value={calculatedAge}
-                className={styles.input}
-                disabled
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.label}>
-                <i className="fas fa-envelope"></i> Email:
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register("email")}
-                className={styles.input}
-                value={formData.email}
-                onChange={handleFormDataChange}
-              />
-              {errors.email && (
-                <p className={styles.error}>{errors.email.message}</p>
-              )}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="course" className={styles.label}>
-                <i className="fas fa-graduation-cap"></i> Course:
-              </label>
-              <select
-                id="course"
-                {...register("course")}
-                className={styles.select}
-                value={formData.course}
-                onChange={handleFormDataChange}
-              >
-                <option value="">Select Course</option>
-                <option value="React JS">React JS</option>
-                <option value="Node JS">Node JS</option>
-                <option value="Python">Python</option>
-                <option value="Java">Java</option>
-              </select>
-              {errors.course && (
-                <p className={styles.error}>{errors.course.message}</p>
-              )}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="college" className={styles.label}>
-                <i className="fas fa-university"></i> College:
-              </label>
-              <input
-                type="text"
-                id="college"
-                {...register("college")}
-                className={styles.input}
-                value={formData.college}
-                onChange={handleFormDataChange}
-              />
-              {errors.college && (
-                <p className={styles.error}>{errors.college.message}</p>
-              )}
-            </div>
-            <div className={`styles.formGroup styles.addressArea`}>
-              <label htmlFor="address" className={styles.label}>
-                <i className="fas fa-home"></i> Address:
-              </label>
-              <textarea
-                id="address"
-                {...register("address")}
-                className={styles.textarea}
-                value={formData.address}
-                onChange={handleFormDataChange}
-              />
-              {errors.address && (
-                <p className={styles.error}>{errors.address.message}</p>
-              )}
-            </div>
-
-            <button type="submit" className={styles.button}>
-              Submit
-            </button>
-          </div>
+          <input
+            type="file"
+            id="profilePhotoInput"
+            {...register("profilePhoto")}
+            className={styles.input}
+            accept="image/*"
+            onChange={handleProfilePhotoChange}
+            style={{ display: "none" }} // Hide the file input
+          />
+          {errors.profilePhoto && (
+            <p className={styles.errorMessage}>{errors.profilePhoto.message}</p>
+          )}
         </div>
-      </form>
+        <div className={styles.progressBarContainer}>
+          <div
+            className={styles.progressBar}
+            style={{ width: `${progress}%` }}
+          ></div>
+          <span className={styles.progressText}>{progress}% Completed</span>
+        </div>
+        <div className={styles.progressMessage}>
+          {progress < 100
+            ? `You're almost there! Complete your profile to unlock all features.`
+            : `Great job! Your profile is 100% complete.`}
+        </div>
+      </div>
+      <div className={styles.mainContent}>
+        <h2 className={styles.heading}>Student Information Form</h2>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={styles.form}
+          noValidate
+        >
+          {/* Name */}
+          <div className={styles.formGroup}>
+            <label htmlFor="name" className={styles.label}>
+              Name:
+            </label>
+            <input
+              type="text"
+              id="name"
+              {...register("name")}
+              className={styles.input}
+            />
+            {errors.name && (
+              <p className={styles.errorMessage}>{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className={styles.formGroup}>
+            <label htmlFor="email" className={styles.label}>
+              Email:
+            </label>
+            <input
+              type="email"
+              id="email"
+              {...register("email")}
+              className={styles.input}
+            />
+            {errors.email && (
+              <p className={styles.errorMessage}>{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Contact Number */}
+          <div className={styles.formGroup}>
+            <label htmlFor="contact" className={styles.label}>
+              Contact Number:
+            </label>
+            <input
+              type="text"
+              id="contact"
+              {...register("contact")}
+              className={styles.input}
+            />
+            {errors.contact && (
+              <p className={styles.errorMessage}>{errors.contact.message}</p>
+            )}
+          </div>
+
+          {/* Age */}
+          <div className={styles.formGroup}>
+            <label htmlFor="age" className={styles.label}>
+              Age:
+            </label>
+            <input
+              type="number"
+              id="age"
+              {...register("age", { valueAsNumber: true })}
+              className={styles.input}
+            />
+            {errors.age && (
+              <p className={styles.errorMessage}>{errors.age.message}</p>
+            )}
+          </div>
+
+          {/* Birthday */}
+          <div className={styles.formGroup}>
+            <label htmlFor="birthday" className={styles.label}>
+              Birthday:
+            </label>
+            <input
+              type="date"
+              id="birthday"
+              {...register("birthday")}
+              className={styles.input}
+            />
+            {errors.birthday && (
+              <p className={styles.errorMessage}>{errors.birthday.message}</p>
+            )}
+          </div>
+
+          {/* Course */}
+          <div className={styles.formGroup}>
+            <label htmlFor="course" className={styles.label}>
+              Course:
+            </label>
+            <select
+              id="course"
+              {...register("course")}
+              className={styles.select}
+            >
+              <option value="">-- Select a Course --</option>
+              <option value="React">React</option>
+              <option value="Django">Django</option>
+              <option value="Node.js">Node.js</option>
+            </select>
+            {errors.course && (
+              <p className={styles.errorMessage}>{errors.course.message}</p>
+            )}
+          </div>
+
+          {/* Gender */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Gender:</label>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  value="Male"
+                  {...register("gender")}
+                  className={styles.radioInput}
+                />{" "}
+                Male
+              </label>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  value="Female"
+                  {...register("gender")}
+                  className={styles.radioInput}
+                />{" "}
+                Female
+              </label>
+            </div>
+            {errors.gender && (
+              <p className={styles.errorMessage}>{errors.gender.message}</p>
+            )}
+          </div>
+
+          {/* Hobbies */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Hobbies:</label>
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  value="Reading"
+                  {...register("hobbies")}
+                  className={styles.checkbox}
+                />{" "}
+                Reading
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  value="Traveling"
+                  {...register("hobbies")}
+                  className={styles.checkbox}
+                />{" "}
+                Traveling
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  value="Photography"
+                  {...register("hobbies")}
+                  className={styles.checkbox}
+                />{" "}
+                Photography
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  value="Music"
+                  {...register("hobbies")}
+                  className={styles.checkbox}
+                />{" "}
+                Music
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  value="Sports"
+                  {...register("hobbies")}
+                  className={styles.checkbox}
+                />{" "}
+                Sports
+              </label>
+            </div>
+            {errors.hobbies && (
+              <p className={styles.errorMessage}>{errors.hobbies.message}</p>
+            )}
+          </div>
+
+          {/* Address */}
+          <div className={styles.formGroup}>
+            <label htmlFor="address" className={styles.label}>
+              Address:
+            </label>
+            <textarea
+              id="address"
+              {...register("address")}
+              className={styles.textarea}
+              placeholder="Enter your address"
+            ></textarea>
+            {errors.address && (
+              <p className={styles.errorMessage}>{errors.address.message}</p>
+            )}
+          </div>
+
+          <button type="submit" className={styles.submitButton}>
+            Submit
+          </button>
+        </form>
+      </div>
     </div>
   );
-};
-
-export default StudentForm;
+}
