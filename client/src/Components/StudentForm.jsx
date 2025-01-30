@@ -4,51 +4,60 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import styles from "./StudentForm.module.css";
 import { FaCamera } from "react-icons/fa";
+import axios from "axios";
 
 const studentSchema = z.object({
-  name: z
+  firstName: z
     .string()
     .trim()
+    .nonempty("Please enter a first name")
+    .min(3, "Name must be at least 3 characters long")
+    .max(50, "Name must not exceed 50 characters")
+    .regex(/^[A-Za-z\s]+$/, "Name must only contain letters and spaces"),
+  lastName: z
+    .string()
+    .trim()
+    .nonempty("Please enter a last name")
     .min(3, "Name must be at least 3 characters long")
     .max(50, "Name must not exceed 50 characters")
     .regex(/^[A-Za-z\s]+$/, "Name must only contain letters and spaces"),
   email: z
     .string()
-    .email("Invalid email address")
-    .regex(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      "Invalid email format"
-    ),
+    .nonempty("Please enter an email")
+    .email("Invalid email address"),
   age: z
-    .number({
-      invalid_type_error: "Age must be a number",
-    })
+    .number({ invalid_type_error: "Age must be a number" })
     .int("Age must be an integer")
     .min(18, "Age must be at least 18")
     .max(60, "Age must not exceed 60"),
-  course: z
-    .string()
-    .trim()
-    .nonempty("Please select a course")
-    .regex(
-      /^[A-Za-z0-9\s-]+$/,
-      "Course name must only contain letters, numbers, spaces, or dashes"
-    ),
+  zipCode: z
+    .number()
+    .int("Zip Code must be an integer")
+    .min(10000, "Zip Code must be at least 5 digits")
+    .max(99999, "Zip Code cannot exceed 5 digits"),
+  course: z.string().trim().nonempty("Please select a course"),
   gender: z.enum(["Male", "Female"], {
     errorMap: () => ({ message: "Please select a valid gender" }),
   }),
   birthday: z.string().nonempty("Please select your birthday"),
-  hobbies: z.array(z.string()).min(1, "Please select at least one hobby"),
-  contact: z
+  hobbies: z.string().array().nonempty("Please select at least one hobby"),
+  status: z.enum(["Active", "Inactive"], {
+    errorMap: () => ({ message: "Please select a valid status" }),
+  }),
+  mobile: z
     .string()
     .trim()
-    .nonempty("Contact number is required")
-    .regex(/^\d{10}$/, "Contact number must be exactly 10 digits"),
+    .nonempty("Mobile number is required")
+    .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
   address: z
     .string()
     .trim()
+    .nonempty("Please enter address")
     .min(10, "Address must be at least 10 characters long")
     .max(200, "Address must not exceed 200 characters"),
+  city: z.string().trim().nonempty("Please enter city"),
+  state: z.string().trim().nonempty("Please enter state"),
+  country: z.string().trim().nonempty("Please enter country"),
   profilePhoto: z.any().optional(),
 });
 
@@ -74,13 +83,41 @@ export default function StudentFormInfo() {
     resolver: zodResolver(studentSchema),
   });
 
-  const onSubmit = (data) => {
-    console.log("Student Information:", data);
-    alert("Form submitted successfully!");
-    reset();
+  //  API endpoint
+  const API_URL =
+    "https://bc7f-103-240-169-179.ngrok-free.app/api/v1/students/";
+
+  const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+
+      // Append all form fields to the FormData
+      Object.keys(data).forEach((key) => {
+        formData.append(key, data[key]);
+      });
+
+      // Add the profile photo to the FormData
+      if (data.profilePhoto[0]) {
+        formData.append("profilePhoto", data.profilePhoto[0]);
+      }
+
+      // Send the POST request to the API
+      const response = await axios.post(API_URL, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Handle success
+      alert("Form submitted successfully!");
+      console.log("Response:", response.data);
+      reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to submit the form. Please try again.");
+    }
   };
 
-  // Watch all fields to calculate progress
   const formValues = watch();
   const totalFields = 9;
   const filledFields = Object.keys(formValues).filter(
@@ -142,19 +179,35 @@ export default function StudentFormInfo() {
           className={styles.form}
           noValidate
         >
-          {/* Name */}
+          {/* First Name */}
           <div className={styles.formGroup}>
-            <label htmlFor="name" className={styles.label}>
-              Name:
+            <label htmlFor="firstName" className={styles.label}>
+              First Name:
             </label>
             <input
               type="text"
-              id="name"
-              {...register("name")}
+              id="firstName"
+              {...register("firstName")}
               className={styles.input}
             />
-            {errors.name && (
-              <p className={styles.errorMessage}>{errors.name.message}</p>
+            {errors.firstName && (
+              <p className={styles.errorMessage}>{errors.firstName.message}</p>
+            )}
+          </div>
+
+          {/* Last Name */}
+          <div className={styles.formGroup}>
+            <label htmlFor="lastName" className={styles.label}>
+              Last Name:
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              {...register("lastName")}
+              className={styles.input}
+            />
+            {errors.lastName && (
+              <p className={styles.errorMessage}>{errors.lastName.message}</p>
             )}
           </div>
 
@@ -174,19 +227,102 @@ export default function StudentFormInfo() {
             )}
           </div>
 
-          {/* Contact Number */}
+          {/* Mobile Number */}
           <div className={styles.formGroup}>
-            <label htmlFor="contact" className={styles.label}>
-              Contact Number:
+            <label htmlFor="mobile" className={styles.label}>
+              Mobile Number:
             </label>
             <input
               type="text"
-              id="contact"
-              {...register("contact")}
+              id="mobile"
+              {...register("mobile")}
               className={styles.input}
             />
-            {errors.contact && (
-              <p className={styles.errorMessage}>{errors.contact.message}</p>
+            {errors.mobile && (
+              <p className={styles.errorMessage}>{errors.mobile.message}</p>
+            )}
+          </div>
+
+          {/* Status */}
+          <div className={styles.formGroup}>
+            <label htmlFor="status" className={styles.label}>
+              Status:
+            </label>
+            <select
+              id="status"
+              {...register("status")}
+              className={styles.select}
+            >
+              <option value="">-- Select a Status --</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            {errors.status && (
+              <p className={styles.errorMessage}>{errors.status.message}</p>
+            )}
+          </div>
+
+          {/* City */}
+          <div className={styles.formGroup}>
+            <label htmlFor="city" className={styles.label}>
+              City :
+            </label>
+            <input
+              type="text"
+              id="city"
+              {...register("city")}
+              className={styles.input}
+            />
+            {errors.city && (
+              <p className={styles.errorMessage}>{errors.city.message}</p>
+            )}
+          </div>
+
+          {/* State */}
+          <div className={styles.formGroup}>
+            <label htmlFor="state" className={styles.label}>
+              State :
+            </label>
+            <input
+              type="text"
+              id="state"
+              {...register("state")}
+              className={styles.input}
+            />
+            {errors.state && (
+              <p className={styles.errorMessage}>{errors.state.message}</p>
+            )}
+          </div>
+
+          {/* Country */}
+          <div className={styles.formGroup}>
+            <label htmlFor="country" className={styles.label}>
+              Country:
+            </label>
+            <input
+              type="text"
+              id="country"
+              {...register("country")}
+              className={styles.input}
+            />
+            {errors.country && (
+              <p className={styles.errorMessage}>{errors.country.message}</p>
+            )}
+          </div>
+
+          {/* Zip Code */}
+          <div className={styles.formGroup}>
+            <label htmlFor="zipCode" className={styles.label}>
+              Zip Code:
+            </label>
+            <input
+              type="number"
+              id="zipCode"
+              {...register("zipCode")}
+              className={styles.input}
+            />
+            {errors.zipCode && (
+              <p className={styles.errorMessage}>{errors.zipCode.message}</p>
             )}
           </div>
 
@@ -233,9 +369,11 @@ export default function StudentFormInfo() {
               className={styles.select}
             >
               <option value="">-- Select a Course --</option>
-              <option value="React">React</option>
-              <option value="Django">Django</option>
-              <option value="Node.js">Node.js</option>
+              {["React", "Django", "Node.js"].map((course) => (
+                <option key={course} value={course}>
+                  {course}
+                </option>
+              ))}
             </select>
             {errors.course && (
               <p className={styles.errorMessage}>{errors.course.message}</p>
@@ -274,51 +412,19 @@ export default function StudentFormInfo() {
           <div className={styles.formGroup}>
             <label className={styles.label}>Hobbies:</label>
             <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  value="Reading"
-                  {...register("hobbies")}
-                  className={styles.checkbox}
-                />{" "}
-                Reading
-              </label>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  value="Traveling"
-                  {...register("hobbies")}
-                  className={styles.checkbox}
-                />{" "}
-                Traveling
-              </label>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  value="Photography"
-                  {...register("hobbies")}
-                  className={styles.checkbox}
-                />{" "}
-                Photography
-              </label>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  value="Music"
-                  {...register("hobbies")}
-                  className={styles.checkbox}
-                />{" "}
-                Music
-              </label>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  value="Sports"
-                  {...register("hobbies")}
-                  className={styles.checkbox}
-                />{" "}
-                Sports
-              </label>
+              {["Reading", "Traveling", "Photography", "Music", "Sports"].map(
+                (hobby) => (
+                  <label key={hobby} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      value={hobby}
+                      {...register("hobbies")}
+                      className={styles.checkbox}
+                    />{" "}
+                    {hobby}
+                  </label>
+                )
+              )}
             </div>
             {errors.hobbies && (
               <p className={styles.errorMessage}>{errors.hobbies.message}</p>
