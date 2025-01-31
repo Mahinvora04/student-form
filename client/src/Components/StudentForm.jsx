@@ -30,17 +30,19 @@ const studentSchema = z.object({
     .int("Age must be an integer")
     .min(18, "Age must be at least 18")
     .max(60, "Age must not exceed 60"),
-  zipCode: z
-    .number()
-    .int("Zip Code must be an integer")
-    .min(10000, "Zip Code must be at least 5 digits")
-    .max(99999, "Zip Code cannot exceed 5 digits"),
+  zipCode: z.nan({
+    required_error: "Zip code is required",
+    invalid_type_error: "Please Enter Zip Code",
+  }),
   course: z.string().trim().nonempty("Please select a course"),
   gender: z.enum(["Male", "Female"], {
     errorMap: () => ({ message: "Please select a valid gender" }),
   }),
   birthday: z.string().nonempty("Please select your birthday"),
-  hobbies: z.string().array().nonempty("Please select at least one hobby"),
+  hobbies: z
+    .string()
+    .array()
+    .nonempty("Please select at least one hobby"),
   status: z.enum(["Active", "Inactive"], {
     errorMap: () => ({ message: "Please select a valid status" }),
   }),
